@@ -7,22 +7,32 @@ from dotenv import load_dotenv
 # Load .env from the current directory
 basedir = os.path.abspath(os.path.dirname(__file__))
 env_path = os.path.join(basedir, '.env')
-load_dotenv(env_path)
+if os.path.exists(env_path):
+    load_dotenv(env_path)
+else:
+    load_dotenv() # Fallback for local dev or environment variables
 
 app = Flask(__name__)
+
+# Load Tours Data with absolute path
+tours_path = os.path.join(basedir, "data", "tours.json")
+try:
+    with open(tours_path, "r", encoding="utf-8") as f:
+        tours_data = json.load(f)
+except FileNotFoundError:
+    print(f"ERROR: tours.json not found at {tours_path}")
+    tours_data = {}
 
 api_key = os.getenv("GROQ_API_KEY")
 if not api_key:
     print("CRITICAL ERROR: GROQ_API_KEY not found in environment variables.")
-    # Exit if we are not in a testing environment
-    if os.environ.get('FLASK_ENV') != 'test':
-        import sys
-        # sys.exit(1) # We won't exit here so we can see the flask error if any
 
-client = Groq(api_key=api_key)
-
-with open("data/tours.json", "r", encoding="utf-8") as f:
-    tours_data = json.load(f)
+# Lazy load or check client
+client = None
+if api_key:
+    client = Groq(api_key=api_key)
+else:
+    print("WARNING: Groq client not initialized due to missing API key.")
 
 conversation_history = []
 
@@ -42,6 +52,9 @@ def chat():
     user_message = request.json.get("message")
 
     try:
+        if not client:
+            return jsonify({"reply": "System Error: AI service is not configured (missing API key). Please check Vercel environment variables."})
+
         conversation_history.append({
             "role": "user",
             "content": user_message
