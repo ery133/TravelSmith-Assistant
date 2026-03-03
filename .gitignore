@@ -20,3 +20,4 @@ output.txt
 
 # Vercel
 .vercel
+node_modules
