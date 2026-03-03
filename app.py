@@ -32,6 +32,11 @@ def home():
     return render_template("index.html")
 
 
+@app.route("/favicon.ico")
+def favicon():
+    return "", 204
+
+
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json.get("message")
