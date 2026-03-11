@@ -21,7 +21,8 @@ if not api_key:
 
 client = Groq(api_key=api_key)
 
-with open("data/tours.json", "r", encoding="utf-8") as f:
+tours_file_path = os.path.join(basedir, "data", "tours.json")
+with open(tours_file_path, "r", encoding="utf-8") as f:
     tours_data = json.load(f)
 
 conversation_history = []
